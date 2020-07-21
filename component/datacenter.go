@@ -9,11 +9,11 @@ import (
 
 type DataCenter struct {
 	clc           clc.CLC
-	serverChannel chan model.Server
+	serverChannel chan string
 	style         Style
 }
 
-func NewDataCenter(clc clc.CLC, serverChannel chan model.Server) *DataCenter {
+func NewDataCenter(clc clc.CLC, serverChannel chan string) *DataCenter {
 	return &DataCenter{
 		clc:           clc,
 		serverChannel: serverChannel,
@@ -109,7 +109,7 @@ func (d *DataCenter) createServer(serverName string) *tview.TreeNode {
 	serverNode.SetExpanded(false)
 	serverNode.SetSelectable(true)
 	serverNode.SetSelectedFunc(func() {
-		d.serverChannel <- d.clc.GetServer(serverName)
+		d.serverChannel <- serverName
 	})
 	return serverNode
 }

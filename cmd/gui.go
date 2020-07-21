@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/Molsbee/clc-term/clc"
-	"github.com/Molsbee/clc-term/clc/model"
 	"github.com/Molsbee/clc-term/component"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
@@ -32,24 +31,20 @@ func gui() *cobra.Command {
 			if err != nil {
 				log.Fatal("unable to create clc client")
 			}
-			serverChannel := make(chan model.Server)
+			serverChannel := make(chan string)
 
 			app := tview.NewApplication()
 			app.EnableMouse(true)
 
 			grid := tview.NewGrid().SetColumns(30, -1)
 			grid.AddItem(component.NewDataCenter(clc, serverChannel).Render(), 0, 0, 1, 1, 0, 0, false)
-			serverDetails := component.NewServerDetails()
-			view := serverDetails.Render()
-			grid.AddItem(view, 0, 1, 1, 1, 0, 0, false)
+			serverDetails := component.NewServerDetails(app, clc)
+			grid.AddItem(serverDetails.Render(), 0, 1, 1, 1, 0, 0, false)
 
 			go func() {
 				for {
-					server := <-serverChannel
-					serverDetails.UpdateServer(server)
-					view.SetChangedFunc(func() {
-						app.Draw()
-					})
+					serverName := <-serverChannel
+					serverDetails.UpdateServer(serverName)
 				}
 			}()
 
