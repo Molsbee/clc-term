@@ -1,28 +1,23 @@
 package component
 
 import (
-	"fmt"
 	"github.com/Molsbee/clc-term/clc"
 	"github.com/Molsbee/clc-term/clc/model"
 	"github.com/rivo/tview"
-	"log"
 	"strings"
 )
 
 type DataCenter struct {
-	clc   clc.CLC
-	style Style
+	clc           clc.CLC
+	serverChannel chan model.Server
+	style         Style
 }
 
-func NewDataCenter(accountAlias string) *DataCenter {
-	clc, err := clc.New(accountAlias)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func NewDataCenter(clc clc.CLC, serverChannel chan model.Server) *DataCenter {
 	return &DataCenter{
-		clc:   clc,
-		style: defaultStyle,
+		clc:           clc,
+		serverChannel: serverChannel,
+		style:         defaultStyle,
 	}
 }
 
@@ -59,9 +54,8 @@ func (d *DataCenter) dataCenters() tview.Primitive {
 
 	for i := 0; i < len(dataCenters); i++ {
 		hardwareGroup := <-groupChannel
-		fmt.Printf("%s %d\n", hardwareGroup.LocationID, hardwareGroup.ServersCount)
 		if hardwareGroup.ServersCount != 0 {
-			root.AddChild(d.createDataCenter(hardwareGroup.LocationID, hardwareGroup.Name, hardwareGroup))
+			root.AddChild(d.createDataCenter(hardwareGroup.LocationID, hardwareGroup.LocationID, hardwareGroup))
 		}
 	}
 
@@ -112,9 +106,10 @@ func (d *DataCenter) createGroup(group model.Group) *tview.TreeNode {
 func (d *DataCenter) createServer(serverName string) *tview.TreeNode {
 	serverNode := tview.NewTreeNode(serverName)
 	serverNode.SetReference(serverName)
+	serverNode.SetExpanded(false)
 	serverNode.SetSelectable(true)
 	serverNode.SetSelectedFunc(func() {
-		// Do something to render server information
+		d.serverChannel <- d.clc.GetServer(serverName)
 	})
 	return serverNode
 }
