@@ -36,19 +36,24 @@ func gui() *cobra.Command {
 			app := tview.NewApplication()
 			app.EnableMouse(true)
 
-			grid := tview.NewGrid().SetColumns(30, -1)
-			grid.AddItem(component.NewDataCenter(clc, serverChannel).Render(), 0, 0, 1, 1, 0, 0, false)
+			flex := tview.NewFlex()
+			flex.AddItem(component.NewDataCenter(clc, serverChannel).Render(), 0, 1, false)
+
 			serverDetails := component.NewServerDetails(app, clc)
-			grid.AddItem(serverDetails.Render(), 0, 1, 1, 1, 0, 0, false)
+			flex.AddItem(serverDetails.Render(), 0, 2, false)
+
+			credential := component.NewCredential(app, clc)
+			flex.AddItem(credential.Render(), 50, 1, false)
 
 			go func() {
 				for {
 					serverName := <-serverChannel
-					serverDetails.UpdateServer(serverName)
+					go serverDetails.UpdateServer(serverName)
+					go credential.Update(serverName)
 				}
 			}()
 
-			if err := app.SetRoot(grid, true).SetFocus(grid).Run(); err != nil {
+			if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 				panic(err)
 			}
 		},

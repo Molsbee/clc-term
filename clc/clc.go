@@ -52,3 +52,10 @@ func (c CLC) GetServer(serverName string) model.Server {
 	c.client.Get(url, &server)
 	return server
 }
+
+func (c CLC) GetServerCredentials(serverName string) model.Credentials {
+	url := fmt.Sprintf("%s/v2/servers/%s/%s/credentials", c.baseURL, c.accountAlias, serverName)
+	credentials := model.Credentials{}
+	c.client.Get(url, &credentials)
+	return credentials
+}

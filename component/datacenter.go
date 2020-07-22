@@ -27,14 +27,14 @@ func (d *DataCenter) Style(style Style) {
 
 func (d *DataCenter) Render() tview.Primitive {
 	grid := tview.NewGrid().SetColumns(1, -1)
-	grid.AddItem(tview.NewBox().SetBackgroundColor(d.style.DataCenterListBGColor), 0, 0, 1, 1, 0, 0, false)
+	grid.AddItem(tview.NewBox().SetBackgroundColor(d.style.BGColor), 0, 0, 1, 1, 0, 0, false)
 	grid.AddItem(d.dataCenters(), 0, 1, 1, 1, 0, 0, false)
 	return grid
 }
 
 func (d *DataCenter) dataCenters() tview.Primitive {
 	tree := tview.NewTreeView()
-	tree.SetBackgroundColor(d.style.DataCenterListBGColor)
+	tree.SetBackgroundColor(d.style.BGColor)
 	tree.SetSelectedFunc(func(n *tview.TreeNode) {
 		n.SetExpanded(!n.IsExpanded())
 	})
