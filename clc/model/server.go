@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Server struct {
 	ID              string        `json:"id"`
@@ -22,16 +25,52 @@ type Server struct {
 }
 
 func (s Server) String() string {
+	internalIPAddressBuilder := strings.Builder{}
+	publicIPAddressBuilder := strings.Builder{}
+
+	internalIPAddressBuilder.WriteString("[")
+	publicIPAddressBuilder.WriteString("[")
+	for i, ip := range s.Details.IPAddresses {
+		if len(ip.Internal) != 0 {
+			internalIPAddressBuilder.WriteString(ip.Internal)
+			if i < len(s.Details.IPAddresses)-1 {
+				internalIPAddressBuilder.WriteString(", ")
+			}
+		}
+
+		if len(ip.Public) != 0 {
+			publicIPAddressBuilder.WriteString(ip.Public)
+			if i < len(s.Details.IPAddresses)-1 {
+				publicIPAddressBuilder.WriteString(", ")
+			}
+		}
+	}
+	internalIPAddressBuilder.WriteString("]")
+	publicIPAddressBuilder.WriteString("]")
+
+	diskBuilder := strings.Builder{}
+	for _, d := range s.Details.DisksFromMain {
+		diskBuilder.WriteString(fmt.Sprintf("\t\tDisk ID: %s\tSizeGB %5d\tPath %s\n", d.ID, d.SizeGB, d.PartitionPaths[0]))
+	}
+
 	return fmt.Sprintf(`%s
 [%s]
----------------------------------------------------------
-OS:             %s
-IPAddresses:    %s
-CPU:            %d
-Memory:         %d
-vSphere:        %s
-`, s.Name, s.Description, s.OSType, s.Details.IPAddresses,
-		s.Details.CPU, s.Details.MemoryGB(), s.Details.ManagementLinks[0].URI)
+-----------------------------------------------------------------------
+OS:                          %s
+Internal IP:                 %s
+Public IP:                   %s
+CPU:                         %d Cores
+Memory:                      %d GB
+PowerState:                  %s
+Created By:                  %s
+Created Date:                %s
+vSphere:                     %s
+
+Disks
+%s
+`, s.Name, s.Description, s.OSType, internalIPAddressBuilder.String(), publicIPAddressBuilder.String(),
+		s.Details.CPU, s.Details.MemoryGB(), strings.ToTitle(s.Details.PowerState), s.ChangeInfo.CreatedBy,
+		s.ChangeInfo.CreatedDate, s.Details.ManagementLinks[0].URI, diskBuilder.String())
 }
 
 type ServerDetails struct {
@@ -52,11 +91,7 @@ type ServerDetails struct {
 		Name string `json:"name"`
 		URI  string `json:"uri"`
 	} `json:"managementLinks"`
-	DisksFromMain []struct {
-		ID             string   `json:"id"`
-		SizeGB         int      `json:"sizeGB"`
-		PartitionPaths []string `json:"partitionPaths"`
-	} `json:"disksFromMain"`
+	DisksFromMain        []Disk `json:"disksFromMain"`
 	MemoryMB             int    `json:"memoryMB"`
 	PowerState           string `json:"powerState"`
 	StorageGB            int    `json:"storageGB"`
