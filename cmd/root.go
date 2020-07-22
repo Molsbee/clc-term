@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(configCmd(), gui())
+	rootCmd.AddCommand(configCmd(), dataCenters)
 }
 
 func Execute() {
