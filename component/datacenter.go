@@ -4,7 +4,7 @@ import (
 	"github.com/Molsbee/clc-term/clc"
 	"github.com/Molsbee/clc-term/clc/model"
 	"github.com/rivo/tview"
-	"strings"
+	"sort"
 )
 
 type DataCenter struct {
@@ -26,80 +26,64 @@ func (d *DataCenter) Style(style Style) {
 }
 
 func (d *DataCenter) Render() tview.Primitive {
-	grid := tview.NewGrid().SetColumns(1, -1)
-	grid.AddItem(tview.NewBox().SetBackgroundColor(d.style.BGColor), 0, 0, 1, 1, 0, 0, false)
-	grid.AddItem(d.dataCenters(), 0, 1, 1, 1, 0, 0, false)
-	return grid
-}
-
-func (d *DataCenter) dataCenters() tview.Primitive {
 	tree := tview.NewTreeView()
 	tree.SetBackgroundColor(d.style.BGColor)
 	tree.SetSelectedFunc(func(n *tview.TreeNode) {
 		n.SetExpanded(!n.IsExpanded())
 	})
 
-	root := tview.NewTreeNode("Data Centers")
-	root.SetSelectable(false)
-
+	// Load all data centers and iterate them to get the hardware group for the account in each data center.
 	dataCenters := d.clc.GetDataCenters()
 	groupChannel := make(chan model.Group, len(dataCenters))
 	for _, dataCenter := range dataCenters {
 		go func(dc model.DataCenter, channel chan model.Group) {
-			dataCenter := d.clc.GetDataCenter(dc.ID)
-			hardwareGroup := d.clc.GetGroup(dataCenter.GetHardwareGroupID())
+			hardwareGroup := d.clc.GetGroup(d.clc.GetDataCenter(dc.ID).GetHardwareGroupID())
+			hardwareGroup.Name = dc.Name
 			channel <- hardwareGroup
 		}(dataCenter, groupChannel)
 	}
 
+	// Populate Data Center Tree
+	root := tview.NewTreeNode("Data Centers")
+	root.SetSelectable(false)
 	for i := 0; i < len(dataCenters); i++ {
 		hardwareGroup := <-groupChannel
 		if hardwareGroup.ServersCount != 0 {
-			root.AddChild(d.createDataCenter(hardwareGroup.LocationID, hardwareGroup.LocationID, hardwareGroup))
+			root.AddChild(d.createGroup(hardwareGroup))
 		}
 	}
 
+	// Sort Data Center Tree to view them alphabetically
+	sort.Slice(root.GetChildren(), func(i, j int) bool {
+		return root.GetChildren()[i].GetText() < root.GetChildren()[j].GetText()
+	})
+
 	tree.SetRoot(root)
 	return tree
-}
-
-func (d *DataCenter) createDataCenter(id, name string, hardwareGroup model.Group) *tview.TreeNode {
-	dcNode := tview.NewTreeNode(strings.TrimSpace(name))
-	dcNode.SetReference(id)
-	dcNode.SetExpanded(false)
-	dcNode.SetSelectable(true)
-	dcNode.SetSelectedFunc(func() {
-		children := children(dcNode.GetChildren())
-		for _, g := range hardwareGroup.Groups {
-			if !children.Contains(g.ID) {
-				dcNode.AddChild(d.createGroup(g))
-			}
-		}
-	})
-	return dcNode
 }
 
 func (d *DataCenter) createGroup(group model.Group) *tview.TreeNode {
 	groupNode := tview.NewTreeNode(group.Name)
 	groupNode.SetReference(group.ID)
 	groupNode.SetExpanded(false)
-	groupNode.SetSelectable(group.ServersCount != 0)
+	groupNode.SetSelectable(true)
 	if group.ServersCount != 0 {
 		groupNode.SetColor(d.style.SelectableGroupTextColor)
-		groupNode.SetSelectedFunc(func() {
-			children := children(groupNode.GetChildren())
-			for _, g := range group.Groups {
-				if !children.Contains(group.ID) {
-					groupNode.AddChild(d.createGroup(g))
-				}
-			}
-			for _, s := range group.GetServers() {
-				if !children.Contains(s) {
-					groupNode.AddChild(d.createServer(s))
-				}
-			}
-		})
 	}
+
+	groupNode.SetSelectedFunc(func() {
+		children := children(groupNode.GetChildren())
+		for _, g := range group.Groups {
+			if !children.Contains(g.ID) {
+				groupNode.AddChild(d.createGroup(g))
+			}
+		}
+		for _, s := range group.GetServers() {
+			if !children.Contains(s) {
+				groupNode.AddChild(d.createServer(s))
+			}
+		}
+	})
 	return groupNode
 }
 
