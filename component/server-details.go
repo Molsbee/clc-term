@@ -18,7 +18,7 @@ func NewServerDetails(app *tview.Application, clc clc.CLC) *ServerDetails {
 	return &ServerDetails{
 		clc:           clc,
 		app:           app,
-		style:         defaultStyle,
+		style:         DefaultStyle,
 		text:          tview.NewTextView(),
 		viewedServers: make(map[string]model.Server),
 	}

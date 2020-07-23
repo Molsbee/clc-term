@@ -49,3 +49,13 @@ func (c CLC) GetServerCredentials(serverName string) (credentials model.Credenti
 	c.client.Get(fmt.Sprintf("%s/v2/servers/%s/%s/credentials", c.baseURL, c.accountAlias, serverName), &credentials)
 	return
 }
+
+func (c CLC) GetCrossDataCenterFirewallPolicies(dataCenter string) (policies []model.CrossDataCenterFirewallPolicy) {
+	c.client.Get(fmt.Sprintf("%s/v2-experimental/crossDcFirewallPolicies/%s/%s", c.baseURL, c.accountAlias, dataCenter), &policies)
+	return
+}
+
+func (c CLC) GetIntraDataCenterFirewallPolicies(dataCenter string) (policies []model.IntraDataCenterFirewallPolicy) {
+	c.client.Get(fmt.Sprintf("%s/v2-experimental/firewallPolicies/%s/%s", c.baseURL, c.accountAlias, dataCenter), &policies)
+	return
+}

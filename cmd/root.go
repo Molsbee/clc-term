@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(configCmd(), dataCenters)
+	rootCmd.AddCommand(configCmd(), dataCenters, firewall)
 }
 
 func Execute() {

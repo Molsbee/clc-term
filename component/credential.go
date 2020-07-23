@@ -20,7 +20,7 @@ func NewCredential(app *tview.Application, clc clc.CLC) *Credential {
 	return &Credential{
 		clc:               clc,
 		app:               app,
-		style:             defaultStyle,
+		style:             DefaultStyle,
 		title:             tview.NewTextView(),
 		text:              tview.NewTextView(),
 		viewedCredentials: make(map[string]model.Credentials),

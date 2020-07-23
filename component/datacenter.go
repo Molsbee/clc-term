@@ -17,7 +17,7 @@ func NewDataCenter(clc clc.CLC, serverChannel chan string) *DataCenter {
 	return &DataCenter{
 		clc:           clc,
 		serverChannel: serverChannel,
-		style:         defaultStyle,
+		style:         DefaultStyle,
 	}
 }
 
@@ -38,7 +38,7 @@ func (d *DataCenter) Render() tview.Primitive {
 	for _, dataCenter := range dataCenters {
 		go func(dc model.DataCenter, channel chan model.Group) {
 			hardwareGroup := d.clc.GetGroup(d.clc.GetDataCenter(dc.ID).GetHardwareGroupID())
-			hardwareGroup.Name = dc.Name
+			hardwareGroup.Name = dc.SanitizedName()
 			channel <- hardwareGroup
 		}(dataCenter, groupChannel)
 	}
@@ -66,7 +66,7 @@ func (d *DataCenter) createGroup(group model.Group) *tview.TreeNode {
 	groupNode := tview.NewTreeNode(group.Name)
 	groupNode.SetReference(group.ID)
 	groupNode.SetExpanded(false)
-	groupNode.SetSelectable(true)
+	groupNode.SetSelectable(group.ServersCount != 0)
 	if group.ServersCount != 0 {
 		groupNode.SetColor(d.style.SelectableGroupTextColor)
 	}

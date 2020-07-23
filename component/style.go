@@ -9,7 +9,7 @@ type Style struct {
 	SelectableGroupTextColor tcell.Color
 }
 
-var defaultStyle = Style{
+var DefaultStyle = Style{
 	TextColor:                tcell.ColorWhite,
 	BGColor:                  tcell.NewRGBColor(0, 0, 0),
 	DataCenterListTextColor:  tcell.NewRGBColor(230, 230, 230),
