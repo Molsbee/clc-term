@@ -8,7 +8,7 @@ import (
 type CLC struct {
 	accountAlias string
 	baseURL      string
-	client       client
+	client       restClient
 }
 
 func New(accountAlias string) (c CLC, err error) {
@@ -25,37 +25,27 @@ func New(accountAlias string) (c CLC, err error) {
 	return
 }
 
-func (c CLC) GetDataCenters() []model.DataCenter {
-	url := fmt.Sprintf("%s/v2/datacenters/%s", c.baseURL, c.accountAlias)
-	var dataCenters []model.DataCenter
-	c.client.Get(url, &dataCenters)
-	return dataCenters
+func (c CLC) GetDataCenters() (dataCenters []model.DataCenter) {
+	c.client.Get(fmt.Sprintf("%s/v2/datacenters/%s", c.baseURL, c.accountAlias), &dataCenters)
+	return
 }
 
-func (c CLC) GetDataCenter(id string) model.DataCenter {
-	url := fmt.Sprintf("%s/v2/datacenters/%s/%s?groupLinks=true", c.baseURL, c.accountAlias, id)
-	dataCenter := model.DataCenter{}
-	c.client.Get(url, &dataCenter)
-	return dataCenter
+func (c CLC) GetDataCenter(id string) (dataCenter model.DataCenter) {
+	c.client.Get(fmt.Sprintf("%s/v2/datacenters/%s/%s?groupLinks=true", c.baseURL, c.accountAlias, id), &dataCenter)
+	return
 }
 
-func (c CLC) GetGroup(id string) model.Group {
-	url := fmt.Sprintf("%s/v2/groups/%s/%s", c.baseURL, c.accountAlias, id)
-	group := model.Group{}
-	c.client.Get(url, &group)
-	return group
+func (c CLC) GetGroup(id string) (group model.Group) {
+	c.client.Get(fmt.Sprintf("%s/v2/groups/%s/%s", c.baseURL, c.accountAlias, id), &group)
+	return
 }
 
-func (c CLC) GetServer(serverName string) model.Server {
-	url := fmt.Sprintf("%s/v2/servers/%s/%s", c.baseURL, c.accountAlias, serverName)
-	server := model.Server{}
-	c.client.Get(url, &server)
-	return server
+func (c CLC) GetServer(serverName string) (server model.Server) {
+	c.client.Get(fmt.Sprintf("%s/v2/servers/%s/%s", c.baseURL, c.accountAlias, serverName), &server)
+	return
 }
 
-func (c CLC) GetServerCredentials(serverName string) model.Credentials {
-	url := fmt.Sprintf("%s/v2/servers/%s/%s/credentials", c.baseURL, c.accountAlias, serverName)
-	credentials := model.Credentials{}
-	c.client.Get(url, &credentials)
-	return credentials
+func (c CLC) GetServerCredentials(serverName string) (credentials model.Credentials) {
+	c.client.Get(fmt.Sprintf("%s/v2/servers/%s/%s/credentials", c.baseURL, c.accountAlias, serverName), &credentials)
+	return
 }

@@ -11,14 +11,14 @@ import (
 	"time"
 )
 
-type client struct {
+type restClient struct {
 	bearerToken string
 }
 
-func newClient() (c client, err error) {
+func newClient() (c restClient, err error) {
 	conf, cErr := config.Load()
 	if cErr != nil || conf.Username == "" || conf.Password == "" {
-		err = fmt.Errorf("failed to read config file for credentials")
+		err = fmt.Errorf("failed to read config file for valid credentials")
 		return
 	}
 
@@ -26,7 +26,7 @@ func newClient() (c client, err error) {
 	if bearerToken == "" || conf.IsExpired() {
 		bearerToken, err = getBearerToken(conf.Username, conf.Password)
 		if err != nil {
-			err = fmt.Errorf("failed to create clc http client (%s)", err)
+			err = fmt.Errorf("failed to create clc http restClient (%s)", err)
 			return
 		}
 
@@ -35,15 +35,15 @@ func newClient() (c client, err error) {
 		config.Write(conf)
 	}
 
-	c = client{
+	c = restClient{
 		bearerToken: fmt.Sprintf("Bearer %s", bearerToken),
 	}
 	return
 }
 
-func (h client) Get(url string, v interface{}) error {
+func (r restClient) Get(url string, v interface{}) error {
 	request, _ := http.NewRequest("GET", url, nil)
-	request.Header.Set("Authorization", h.bearerToken)
+	request.Header.Set("Authorization", r.bearerToken)
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
@@ -59,7 +59,10 @@ func (h client) Get(url string, v interface{}) error {
 }
 
 func getBearerToken(username, password string) (string, error) {
-	data, _ := json.Marshal(model.AuthRequest{Username: username, Password: password})
+	data, _ := json.Marshal(model.AuthRequest{
+		Username: username,
+		Password: password,
+	})
 	resp, err := http.DefaultClient.Post("https://api.ctl.io/v2/authentication/login", "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return "", fmt.Errorf("login request failed err - %s", err)
