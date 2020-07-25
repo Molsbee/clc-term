@@ -50,7 +50,11 @@ func (s Server) String() string {
 
 	diskBuilder := strings.Builder{}
 	for _, d := range s.Details.DisksFromMain {
-		diskBuilder.WriteString(fmt.Sprintf("\t\tDisk ID: %s\tSizeGB %5d\tPath %s\n", d.ID, d.SizeGB, d.PartitionPaths[0]))
+		path := "unknown"
+		if len(d.PartitionPaths) > 0 {
+			path = d.PartitionPaths[0]
+		}
+		diskBuilder.WriteString(fmt.Sprintf("\t\tDisk ID: %s\tSizeGB %5d\tPath %s\n", d.ID, d.SizeGB, path))
 	}
 
 	return fmt.Sprintf(`%s
