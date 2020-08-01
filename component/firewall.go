@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+const (
+	crossDCFirewallFormat = "| %-32s | %-6s | %-7v | %-14s | %-8s | %-18s | %-19s | %-8s | %-18s |\n"
+	intraDCFirewallFormat = "| %-32s | %-6s | %-7v | %-7s |  %-18s | %-19s | %-18s | %-8s |\n"
+)
+
 type CrossDataCenterFirewallPolicies struct {
 	clc   clc.CLC
 	app   *tview.Application
@@ -53,9 +58,9 @@ func (cr *CrossDataCenterFirewallPolicies) Update(dataCenter string) {
 		cr.text.SetText(fmt.Sprintf("No policies found for data center (%s)", dataCenter))
 	} else {
 		builder := strings.Builder{}
+		builder.WriteString(fmt.Sprintf(crossDCFirewallFormat, "ID", "Status", "Enabled", "Source Account", "Location", "CIDR", "Destination Account", "Location", "CIDR"))
 		for _, p := range policies {
-			l := fmt.Sprintf("%s   %s   %s\n", p.ID, p.SourceCidr, p.DestinationCidr)
-			builder.WriteString(l)
+			builder.WriteString(fmt.Sprintf(crossDCFirewallFormat, p.ID, p.Status, p.Enabled, p.SourceAccount, p.SourceLocation, p.SourceCidr, p.DestinationAccount, p.DestinationLocation, p.DestinationCidr))
 		}
 		cr.text.SetText(builder.String())
 	}
@@ -107,10 +112,28 @@ func (i *IntraDataCenterFirewallPolicies) Update(dataCenter string) {
 		i.text.SetText(fmt.Sprintf("No policies found for data center (%s)", dataCenter))
 	} else {
 		builder := strings.Builder{}
+		builder.WriteString(fmt.Sprintf(intraDCFirewallFormat, "ID", "Status", "Enabled", "Account", "Source", "Destination Account", "Destination", "Ports"))
 		for _, p := range policies {
-			l := fmt.Sprintf("%s   %s   %s\n", p.ID, p.Source, p.Destination)
-			builder.WriteString(l)
+			builder.WriteString(fmt.Sprintf(intraDCFirewallFormat, p.ID, p.Status, p.Enabled, i.clc.GetAccountAlias(), p.Source[0], p.DestinationAccount, p.Destination[0], p.Ports[0]))
+			m := max(max(len(p.Source), len(p.Destination)), len(p.Ports))
+			for index := 1; index < m; index++ {
+				builder.WriteString(fmt.Sprintf(intraDCFirewallFormat, "", "", "", "", getOrDefault(p.Source, index), "", getOrDefault(p.Destination, index), getOrDefault(p.Ports, index)))
+			}
 		}
 		i.text.SetText(builder.String())
 	}
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func getOrDefault(list []string, index int) string {
+	if len(list) > index {
+		return list[index]
+	}
+	return ""
 }

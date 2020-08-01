@@ -25,6 +25,10 @@ func New(accountAlias string) (c CLC, err error) {
 	return
 }
 
+func (c CLC) GetAccountAlias() string {
+	return c.accountAlias
+}
+
 func (c CLC) GetDataCenters() (dataCenters []model.DataCenter) {
 	c.client.Get(fmt.Sprintf("%s/v2/datacenters/%s", c.baseURL, c.accountAlias), &dataCenters)
 	return
