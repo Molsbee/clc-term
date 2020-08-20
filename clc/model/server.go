@@ -57,6 +57,11 @@ func (s Server) String() string {
 		diskBuilder.WriteString(fmt.Sprintf("\t\tDisk ID: %s\tSizeGB %5d\tPath %s\n", d.ID, d.SizeGB, path))
 	}
 
+	vSphere := "Unknown"
+	if len(s.Details.ManagementLinks) != 0 {
+		vSphere = s.Details.ManagementLinks[0].URI
+	}
+
 	return fmt.Sprintf(`%s
 [%s]
 -----------------------------------------------------------------------
@@ -74,7 +79,7 @@ Disks
 %s
 `, s.Name, s.Description, s.OSType, internalIPAddressBuilder.String(), publicIPAddressBuilder.String(),
 		s.Details.CPU, s.Details.MemoryGB(), strings.ToTitle(s.Details.PowerState), s.ChangeInfo.CreatedBy,
-		s.ChangeInfo.CreatedDate, s.Details.ManagementLinks[0].URI, diskBuilder.String())
+		s.ChangeInfo.CreatedDate, vSphere, diskBuilder.String())
 }
 
 type ServerDetails struct {

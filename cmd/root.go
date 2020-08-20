@@ -16,7 +16,8 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(configCmd(), dataCenters, firewall)
+	server.PersistentFlags().StringVarP(&accountAlias, "accountAlias", "a", "", "clc account alias")
+	rootCmd.AddCommand(configCmd(), dataCenters, server, firewall)
 }
 
 func Execute() {
